@@ -9,6 +9,9 @@ import { ResourceBars } from './components/ResourceBars';
 import { Inventory } from './components/Inventory';
 import { PriorityQueue } from './minigames/PriorityQueue';
 import { DoomScroll } from './minigames/DoomScroll';
+import { TheMeeting } from './minigames/TheMeeting';
+import { TimeBlindness } from './minigames/TimeBlindness';
+import { ContextSwitch } from './minigames/ContextSwitch';
 import './styles/terminal.css';
 
 function GameHeader() {
@@ -34,6 +37,11 @@ export default function App() {
   const handlePqAbandon = useCallback(() => dispatch({ type: 'PQ_ABANDON' }), []);
   const handleDsScroll = useCallback(() => dispatch({ type: 'DS_SCROLL' }), []);
   const handleDsPutDown = useCallback(() => dispatch({ type: 'DS_PUT_DOWN' }), []);
+  const handleTmEngage = useCallback(() => dispatch({ type: 'TM_ENGAGE' }), []);
+  const handleTmZoneOut = useCallback(() => dispatch({ type: 'TM_ZONE_OUT' }), []);
+  const handleTbGuess = useCallback((minutes: number) => dispatch({ type: 'TB_GUESS', minutes }), []);
+  const handleCsMemorizeDone = useCallback(() => dispatch({ type: 'CS_MEMORIZE_DONE' }), []);
+  const handleCsSelectWord = useCallback((word: string) => dispatch({ type: 'CS_SELECT_WORD', word }), []);
   const handleCompleteMiniGame = useCallback(() => dispatch({ type: 'COMPLETE_MINI_GAME' }), []);
 
   if (state.screen === 'title') {
@@ -59,11 +67,31 @@ export default function App() {
             onAbandon={handlePqAbandon}
             onComplete={handleCompleteMiniGame}
           />
-        ) : (
+        ) : pendingMiniGame.id === 'doom-scroll' ? (
           <DoomScroll
             state={pendingMiniGame}
             onScroll={handleDsScroll}
             onPutDown={handleDsPutDown}
+            onComplete={handleCompleteMiniGame}
+          />
+        ) : pendingMiniGame.id === 'the-meeting' ? (
+          <TheMeeting
+            state={pendingMiniGame}
+            onEngage={handleTmEngage}
+            onZoneOut={handleTmZoneOut}
+            onComplete={handleCompleteMiniGame}
+          />
+        ) : pendingMiniGame.id === 'time-blindness' ? (
+          <TimeBlindness
+            state={pendingMiniGame}
+            onGuess={handleTbGuess}
+            onComplete={handleCompleteMiniGame}
+          />
+        ) : (
+          <ContextSwitch
+            state={pendingMiniGame}
+            onMemorizeDone={handleCsMemorizeDone}
+            onSelectWord={handleCsSelectWord}
             onComplete={handleCompleteMiniGame}
           />
         )}

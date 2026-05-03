@@ -545,3 +545,372 @@
 .ds-continue-btn:hover {
   background: rgba(0, 255, 65, 0.1);
 }
+
+/* ── The Meeting ── */
+.tm-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 32px;
+  gap: 18px;
+  overflow: hidden;
+  max-width: 560px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.tm-progress {
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+}
+
+.tm-timer-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--green-dark);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.tm-timer-fill {
+  height: 100%;
+  background: var(--green-dim);
+  transition: width 1s linear;
+}
+
+.tm-timer-fill.urgent {
+  background: var(--amber);
+}
+
+.tm-buzzword {
+  width: 100%;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text);
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-align: center;
+  font-style: italic;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tm-score-row {
+  display: flex;
+  gap: 24px;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.tm-score-item.engaged { color: var(--green-dim); }
+.tm-score-item.zoned { color: var(--text-dim); }
+
+.tm-buttons {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.tm-engage-btn {
+  background: transparent;
+  border: 1px solid var(--green-dim);
+  color: var(--green);
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 12px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tm-engage-btn:hover {
+  background: rgba(0, 255, 65, 0.08);
+  border-color: var(--green);
+}
+
+.tm-zone-out-btn {
+  background: transparent;
+  border: 1px solid #1a2a1a;
+  color: #3a5a3a;
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 12px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.tm-zone-out-btn:hover {
+  border-color: var(--border);
+  color: var(--text-dim);
+}
+
+.tm-hint {
+  font-size: 10px;
+  color: var(--text-dim);
+  font-style: italic;
+  text-align: center;
+}
+
+.tm-result {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 32px;
+  text-align: center;
+}
+
+.tm-result-label {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--text-dim);
+}
+
+.tm-result-stat {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+.tm-result-message {
+  max-width: 400px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text);
+  font-style: italic;
+}
+
+/* ── Time Blindness ── */
+.tb-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 32px;
+  gap: 20px;
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.tb-result {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 32px;
+  text-align: center;
+}
+
+.tb-task-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--green-dim);
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.tb-prompt {
+  font-size: 13px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.tb-guesses {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.tb-guess-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 14px 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.tb-guess-btn:hover {
+  border-color: var(--green-dim);
+  background: rgba(0, 255, 65, 0.04);
+  color: var(--green);
+}
+
+.tb-reveal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 24px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-align: center;
+  width: 100%;
+  max-width: 380px;
+}
+
+.tb-reveal-line {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+.tb-reveal-actual {
+  font-size: 20px;
+  color: var(--amber);
+  letter-spacing: 2px;
+}
+
+.tb-reveal-gap {
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+.tb-result-message {
+  max-width: 400px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text);
+  font-style: italic;
+}
+
+/* ── Context Switch ── */
+.cs-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 32px;
+  gap: 20px;
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.cs-phase-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.cs-words-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 20px 28px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  width: 100%;
+}
+
+.cs-word-display {
+  font-size: 14px;
+  color: var(--green);
+  text-align: center;
+  padding: 6px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.cs-ready-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 8px 20px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.cs-ready-btn:hover {
+  border-color: var(--green-dim);
+  color: var(--text);
+}
+
+.cs-recall-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.cs-recall-word {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 10px 12px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.cs-recall-word:hover {
+  border-color: var(--green-dim);
+  background: rgba(0, 255, 65, 0.04);
+}
+
+.cs-recall-word.selected {
+  border-color: var(--green);
+  background: rgba(0, 255, 65, 0.1);
+  color: var(--green);
+}
+
+.cs-result-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 32px;
+  text-align: center;
+}
+
+.cs-result-score {
+  font-size: 32px;
+  letter-spacing: 4px;
+  color: var(--green);
+}
+
+.cs-result-message {
+  max-width: 400px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text);
+  font-style: italic;
+}
+
+.cs-result-words {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+.cs-word-hit { color: var(--green-dim); }
+.cs-word-miss { color: var(--red); }

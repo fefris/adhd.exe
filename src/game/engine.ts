@@ -3,9 +3,14 @@ import { ROOMS } from './rooms';
 import { ENDINGS } from './endings';
 import { ITEM_NAMES } from './items';
 import {
-  createPriorityQueueState, createDoomScrollState,
+  createPriorityQueueState, createDoomScrollState, createTheMeetingState,
+  createTimeBlindnessState, createContextSwitchState,
   pqSelectCard, pqPlayCard, pqEndTurn, pqAbandon,
-  dsScroll, dsPutDown, resolveMiniGame,
+  dsScroll, dsPutDown,
+  tmEngage, tmZoneOut,
+  tbGuess,
+  csMemorizeDone, csSelectWord,
+  resolveMiniGame,
 } from '../minigames/miniGameEngine';
 import { MINI_CARDS } from '../minigames/miniGameContent';
 
@@ -215,9 +220,24 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
         case 'MINI_GAME': {
           log.push(entry(act.description, 'action'));
-          const miniGame = act.gameId === 'priority-queue'
-            ? createPriorityQueueState(player.chaos, act.completesAction)
-            : createDoomScrollState(act.completesAction);
+          let miniGame;
+          if (act.gameId === 'priority-queue') {
+            miniGame = createPriorityQueueState(player.chaos, act.completesAction);
+          } else if (act.gameId === 'doom-scroll') {
+            miniGame = createDoomScrollState(act.completesAction);
+          } else if (act.gameId === 'the-meeting') {
+            miniGame = createTheMeetingState(act.completesAction);
+          } else if (act.gameId === 'time-blindness') {
+            miniGame = createTimeBlindnessState(
+              act.taskLabel ?? 'task',
+              act.taskFocusDelta ?? 0,
+              act.taskTimeDelta ?? 0,
+              act.taskChaosDelta ?? 0,
+              act.completesAction,
+            );
+          } else {
+            miniGame = createContextSwitchState(act.completesAction);
+          }
           return { ...state, player, log, pendingMiniGame: miniGame };
         }
       }
@@ -284,6 +304,36 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         return { ...state, player, log, pendingMiniGame: null, screen: 'end' };
       }
       return { ...state, player, log: [...log, roomEntry(player)], pendingMiniGame: null };
+    }
+
+    case 'TM_ENGAGE': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'the-meeting') return state;
+      return { ...state, pendingMiniGame: tmEngage(mg) };
+    }
+
+    case 'TM_ZONE_OUT': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'the-meeting') return state;
+      return { ...state, pendingMiniGame: tmZoneOut(mg) };
+    }
+
+    case 'TB_GUESS': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'time-blindness') return state;
+      return { ...state, pendingMiniGame: tbGuess(mg, action.minutes) };
+    }
+
+    case 'CS_MEMORIZE_DONE': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'context-switch') return state;
+      return { ...state, pendingMiniGame: csMemorizeDone(mg) };
+    }
+
+    case 'CS_SELECT_WORD': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'context-switch') return state;
+      return { ...state, pendingMiniGame: csSelectWord(mg, action.word) };
     }
 
     case 'CLEAR_LOG':

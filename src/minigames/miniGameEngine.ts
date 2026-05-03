@@ -1,9 +1,9 @@
 import { shuffle } from '../utils';
-import type { PriorityQueueState, DoomScrollState, MiniTask, PendingMiniGame } from '../game/types';
+import type { PriorityQueueState, DoomScrollState, TheMeetingState, TimeBlindnessState, ContextSwitchState, MiniTask, PendingMiniGame } from '../game/types';
 import {
   MINI_CARDS, MINI_TASKS_DATA, MINI_PRESSURE_DATA,
   PRIORITY_QUEUE_DECK, PRIORITY_QUEUE_TASK_IDS, PRIORITY_QUEUE_PRESSURE,
-  DOOM_SCROLL_CONTENTS,
+  DOOM_SCROLL_CONTENTS, MEETING_BUZZWORDS, CONTEXT_WORD_SETS,
 } from './miniGameContent';
 
 export interface MiniGameResolution {
@@ -376,9 +376,201 @@ export function dsResolve(state: DoomScrollState): MiniGameResolution {
   }
 }
 
+// ─── The Meeting ─────────────────────────────────────────────────────────────
+
+export function createTheMeetingState(completesAction?: string): TheMeetingState {
+  return {
+    id: 'the-meeting',
+    round: 0,
+    maxRounds: 8,
+    engaged: 0,
+    zonedOut: 0,
+    done: false,
+    completesAction,
+  };
+}
+
+export function getBuzzword(round: number): string {
+  return MEETING_BUZZWORDS[round % MEETING_BUZZWORDS.length];
+}
+
+function tmAdvance(state: TheMeetingState, didEngage: boolean): TheMeetingState {
+  const nextRound = state.round + 1;
+  return {
+    ...state,
+    round: nextRound,
+    engaged: state.engaged + (didEngage ? 1 : 0),
+    zonedOut: state.zonedOut + (didEngage ? 0 : 1),
+    done: nextRound >= state.maxRounds,
+  };
+}
+
+export function tmEngage(state: TheMeetingState): TheMeetingState {
+  return tmAdvance(state, true);
+}
+
+export function tmZoneOut(state: TheMeetingState): TheMeetingState {
+  return tmAdvance(state, false);
+}
+
+export function tmResolve(state: TheMeetingState): MiniGameResolution {
+  const ratio = state.engaged / state.maxRounds;
+  if (ratio >= 0.75) {
+    return {
+      focusDelta: -8, timeDelta: -20, chaosDelta: 8,
+      message: 'You participated. You nodded at the right moments. You said "absolutely" once and meant it approximately forty percent of the time.',
+      completesAction: state.completesAction,
+    };
+  } else if (ratio >= 0.5) {
+    return {
+      focusDelta: -12, timeDelta: -20, chaosDelta: 15,
+      message: 'You were there. Partially. The part that was there did its best. Nobody noticed the rest.',
+      completesAction: state.completesAction,
+    };
+  } else if (ratio >= 0.25) {
+    return {
+      focusDelta: -5, timeDelta: -20, chaosDelta: 22,
+      message: 'The meeting happened to you. You were technically present. Nobody can prove otherwise. The follow-up email will contain information you do not remember.',
+      completesAction: state.completesAction,
+    };
+  } else {
+    return {
+      focusDelta: 5, timeDelta: -20, chaosDelta: 28,
+      message: 'You were somewhere else entirely. The meeting occurred without your participation. Someone will email you a summary. You will not read the summary.',
+      completesAction: state.completesAction,
+    };
+  }
+}
+
+// ─── Time Blindness ──────────────────────────────────────────────────────────
+
+const TB_ACTUAL_POOL = [18, 25, 35, 45, 55, 70, 90];
+
+export function createTimeBlindnessState(
+  taskLabel: string,
+  focusDelta: number,
+  timeDelta: number,
+  chaosDelta: number,
+  completesAction?: string,
+): TimeBlindnessState {
+  const actual = TB_ACTUAL_POOL[Math.floor(Math.random() * TB_ACTUAL_POOL.length)];
+  return {
+    id: 'time-blindness',
+    taskLabel,
+    guessedMinutes: null,
+    actualMinutes: actual,
+    phase: 'guessing',
+    focusDelta,
+    timeDelta,
+    chaosDelta,
+    completesAction,
+  };
+}
+
+export function tbGuess(state: TimeBlindnessState, minutes: number): TimeBlindnessState {
+  return { ...state, guessedMinutes: minutes, phase: 'done' };
+}
+
+export function tbResolve(state: TimeBlindnessState): MiniGameResolution {
+  const guessed = state.guessedMinutes ?? 15;
+  const actual = state.actualMinutes;
+  const gap = Math.abs(actual - guessed);
+
+  let extraChaos: number;
+  let message: string;
+
+  if (gap <= 10) {
+    extraChaos = 0;
+    message = `You thought it would take ${guessed} minutes. It took ${actual}. You were almost right. This is extremely rare for you. Note it.`;
+  } else if (gap <= 25) {
+    extraChaos = 5;
+    message = `You thought it would take ${guessed} minutes. It took ${actual}. Off by ${gap} minutes. For you, this is a precise estimate.`;
+  } else if (gap <= 50) {
+    extraChaos = 12;
+    message = `You thought it would take ${guessed} minutes. It took ${actual} minutes. You were off by ${gap} minutes. This is normal. This is always normal.`;
+  } else {
+    extraChaos = 20;
+    message = `You thought it would take ${guessed} minutes. It took ${actual} minutes. You were off by ${gap} minutes. Time is doing something to you specifically.`;
+  }
+
+  return {
+    focusDelta: state.focusDelta,
+    timeDelta: state.timeDelta,
+    chaosDelta: state.chaosDelta + extraChaos,
+    message,
+    completesAction: state.completesAction,
+  };
+}
+
+// ─── Context Switch ──────────────────────────────────────────────────────────
+
+export function createContextSwitchState(completesAction?: string): ContextSwitchState {
+  const set = CONTEXT_WORD_SETS[Math.floor(Math.random() * CONTEXT_WORD_SETS.length)];
+  const recallOptions = shuffle([...set.words, ...set.distractors]);
+  return {
+    id: 'context-switch',
+    words: set.words,
+    distractors: set.distractors,
+    phase: 'memorize',
+    selectedWords: [],
+    recallOptions,
+    completesAction,
+  };
+}
+
+export function csMemorizeDone(state: ContextSwitchState): ContextSwitchState {
+  return { ...state, phase: 'recall' };
+}
+
+export function csSelectWord(state: ContextSwitchState, word: string): ContextSwitchState {
+  if (state.phase !== 'recall') return state;
+  const idx = state.selectedWords.indexOf(word);
+  let selected: string[];
+  if (idx !== -1) {
+    selected = state.selectedWords.filter(w => w !== word);
+  } else if (state.selectedWords.length < 4) {
+    selected = [...state.selectedWords, word];
+  } else {
+    return state;
+  }
+  return { ...state, selectedWords: selected, phase: selected.length === 4 ? 'done' : 'recall' };
+}
+
+export function csResolve(state: ContextSwitchState): MiniGameResolution {
+  const correct = state.selectedWords.filter(w => state.words.includes(w)).length;
+  if (correct === 4) {
+    return {
+      focusDelta: 10, timeDelta: -2, chaosDelta: -5,
+      message: 'You remembered all four. Context fully restored. This does not happen often. This is the good kind of neurology day.',
+      completesAction: state.completesAction,
+    };
+  } else if (correct === 3) {
+    return {
+      focusDelta: 3, timeDelta: -2, chaosDelta: 5,
+      message: 'Three out of four. You recovered most of the thread. The fourth thing will come back to you at 11pm.',
+      completesAction: state.completesAction,
+    };
+  } else if (correct === 2) {
+    return {
+      focusDelta: -5, timeDelta: -5, chaosDelta: 10,
+      message: 'Two of the four things. Half the context. You rebuild from there, slowly, at the cost of everything else.',
+      completesAction: state.completesAction,
+    };
+  } else {
+    return {
+      focusDelta: -12, timeDelta: -5, chaosDelta: 18,
+      message: `You got ${correct} of the four things. The others are gone. You start from the beginning, which takes longer than if you had simply stayed.`,
+      completesAction: state.completesAction,
+    };
+  }
+}
+
 // ─── Shared resolver ──────────────────────────────────────────────────────────
 
 export function resolveMiniGame(mg: PendingMiniGame): MiniGameResolution {
   if (mg.id === 'priority-queue') return pqResolve(mg);
-  return dsResolve(mg as DoomScrollState);
+  if (mg.id === 'doom-scroll') return dsResolve(mg);
+  if (mg.id === 'the-meeting') return tmResolve(mg);
+  if (mg.id === 'time-blindness') return tbResolve(mg);
+  return csResolve(mg);
 }

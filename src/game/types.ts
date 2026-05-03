@@ -67,7 +67,7 @@ export type Action =
   | { type: 'DISTRACTION'; description: string; steps: DistractionStep[]; completesAction?: string }
   | { type: 'TASK'; description: string; focusDelta: number; timeDelta: number; chaosDelta?: number; completesAction: string }
   | { type: 'EXAMINE'; description: string; chaosDelta?: number }
-  | { type: 'MINI_GAME'; gameId: 'priority-queue' | 'doom-scroll'; description: string; completesAction?: string };
+  | { type: 'MINI_GAME'; gameId: 'priority-queue' | 'doom-scroll' | 'the-meeting' | 'time-blindness' | 'context-switch'; description: string; completesAction?: string; taskLabel?: string; taskFocusDelta?: number; taskTimeDelta?: number; taskChaosDelta?: number };
 
 export interface DistractionStep {
   text: string;
@@ -172,7 +172,39 @@ export interface DoomScrollState {
   completesAction?: string;
 }
 
-export type PendingMiniGame = PriorityQueueState | DoomScrollState;
+export interface TheMeetingState {
+  id: 'the-meeting';
+  round: number;
+  maxRounds: number;
+  engaged: number;
+  zonedOut: number;
+  done: boolean;
+  completesAction?: string;
+}
+
+export interface TimeBlindnessState {
+  id: 'time-blindness';
+  taskLabel: string;
+  guessedMinutes: number | null;
+  actualMinutes: number;
+  phase: 'guessing' | 'done';
+  focusDelta: number;
+  timeDelta: number;
+  chaosDelta: number;
+  completesAction?: string;
+}
+
+export interface ContextSwitchState {
+  id: 'context-switch';
+  words: string[];
+  distractors: string[];
+  phase: 'memorize' | 'recall' | 'done';
+  selectedWords: string[];
+  recallOptions: string[];
+  completesAction?: string;
+}
+
+export type PendingMiniGame = PriorityQueueState | DoomScrollState | TheMeetingState | TimeBlindnessState | ContextSwitchState;
 
 export interface AppState {
   screen: GameScreen;
@@ -202,4 +234,9 @@ export type AppAction =
   | { type: 'PQ_ABANDON' }
   | { type: 'DS_SCROLL' }
   | { type: 'DS_PUT_DOWN' }
-  | { type: 'COMPLETE_MINI_GAME' };
+  | { type: 'COMPLETE_MINI_GAME' }
+  | { type: 'TM_ENGAGE' }
+  | { type: 'TM_ZONE_OUT' }
+  | { type: 'TB_GUESS'; minutes: number }
+  | { type: 'CS_MEMORIZE_DONE' }
+  | { type: 'CS_SELECT_WORD'; word: string };

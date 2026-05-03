@@ -158,3 +158,37 @@ export const DOOM_SCROLL_CONTENTS: DoomScrollContent[] = [
   { text: 'A mutual you do not really know has posted a meaningful quote. The attribution may be wrong. This information is in the comments. You read the comments.', category: 'social' },
   { text: 'You have now been on this app for a while. The app has no way of communicating this to you, and would not, as it finds your continued presence productive.', category: 'rabbit-hole' },
 ];
+
+export const MEETING_BUZZWORDS: string[] = [
+  "Let's circle back on the core deliverables.",
+  "Can we get a quick level-set before we proceed?",
+  "I want to make sure we're all moving the needle here.",
+  "We need to align on bandwidth across teams.",
+  "Can we action this by EOD? Or at least by COB?",
+  "Let's synergise the feedback loop and take this offline.",
+  "The stakeholders need more granularity on the timelines.",
+  "I'm not sure we're thinking about this holistically.",
+  "Is everyone bought in? I want to make sure everyone's bought in.",
+  "Let's surface the key pain points before we deep-dive.",
+  "We should leverage existing infrastructure going forward.",
+  "I want to flag a blocker. It's not exactly a blocker.",
+];
+
+export const CONTEXT_WORD_SETS: Array<{ words: string[]; distractors: string[] }> = [
+  {
+    words: ['quarterly', 'report', 'pending', 'review'],
+    distractors: ['budget', 'meeting', 'complete', 'upload'],
+  },
+  {
+    words: ['browser', 'forty', 'tabs', 'open'],
+    distractors: ['email', 'flag', 'reply', 'send'],
+  },
+  {
+    words: ['timesheet', 'wednesday', 'estimate', 'vibes'],
+    distractors: ['calendar', 'deadline', 'urgent', 'submit'],
+  },
+  {
+    words: ['presentation', 'slide', 'deck', 'colours'],
+    distractors: ['meeting', 'notes', 'agenda', 'action'],
+  },
+];

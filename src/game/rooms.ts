@@ -525,7 +525,16 @@ export const ROOMS: Record<string, Room> = {
         choices.push({
           id: 'reply-urgent',
           label: 'Reply to the urgent email',
-          action: { type: 'TASK', description: 'You write the reply. You rewrite the reply. You rewrite the subject line even though you cannot change it. You send it. You immediately wonder if it was too formal. It was not too formal.', focusDelta: -10, timeDelta: -12, chaosDelta: 5, completesAction: 'replied-urgent' },
+          action: {
+            type: 'MINI_GAME',
+            gameId: 'time-blindness',
+            description: 'You open the email. It says "Thoughts?" followed by a link and no context. You begin to compose a reply.',
+            completesAction: 'replied-urgent',
+            taskLabel: 'Replying to the urgent email',
+            taskFocusDelta: -10,
+            taskTimeDelta: -12,
+            taskChaosDelta: 5,
+          },
         });
       }
 
@@ -604,7 +613,12 @@ export const ROOMS: Record<string, Room> = {
         choices.push({
           id: 'attend-meeting',
           label: 'Attend the meeting',
-          action: { type: 'TASK', description: 'You attend the meeting. You understand eighty percent of it. The other twenty percent is acronyms that no one has defined but everyone is using. You nod when others nod. This is professional synchronisation.', focusDelta: -12, timeDelta: -20, chaosDelta: 10, completesAction: 'attended-meeting' },
+          action: {
+            type: 'MINI_GAME',
+            gameId: 'the-meeting',
+            description: 'You take a seat. The projector is still being argued with. Someone has written "SYNERGY" at the top of the whiteboard and drawn a small arrow under it. The meeting begins.',
+            completesAction: 'attended-meeting',
+          },
         });
 
         choices.push({
@@ -696,7 +710,29 @@ export const ROOMS: Record<string, Room> = {
         choices.push({
           id: 'fill-timesheet',
           label: 'Fill in timesheet',
-          action: { type: 'TASK', description: 'You fill in the timesheet. Monday is a reconstruction. Tuesday you remember clearly because of the incident with the printer. Wednesday through Thursday are estimates based on vibes. Friday is this meeting plus several approximations. You submit it. It is close enough to the truth to be legal.', focusDelta: -8, timeDelta: -8, completesAction: 'filled-timesheet' },
+          action: {
+            type: 'MINI_GAME',
+            gameId: 'time-blindness',
+            description: 'You open the timesheet portal. It requires an accurate account of what you did each day this week. You begin.',
+            completesAction: 'filled-timesheet',
+            taskLabel: 'Filling in the timesheet',
+            taskFocusDelta: -8,
+            taskTimeDelta: -8,
+            taskChaosDelta: 0,
+          },
+        });
+      }
+
+      if (!hasDone(s, 'did-context-switch')) {
+        choices.push({
+          id: 'context-switch',
+          label: 'Try to pick up where you left off',
+          action: {
+            type: 'MINI_GAME',
+            gameId: 'context-switch',
+            description: 'You sit down. There were four things you were thinking about. There were definitely four things.',
+            completesAction: 'did-context-switch',
+          },
         });
       }
 
