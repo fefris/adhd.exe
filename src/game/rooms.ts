@@ -66,13 +66,9 @@ export const ROOMS: Record<string, Room> = {
         id: 'check-phone',
         label: 'Check phone notifications',
         action: {
-          type: 'DISTRACTION',
-          description: 'You unlock the phone.',
-          steps: [
-            { text: 'You have 23 notifications. You open one email. It is from a service you signed up for in 2019. You unsubscribe. You are then on the unsubscribe confirmation page, which has a survey.', focusDelta: -5, timeDelta: -5, chaosDelta: 8 },
-            { text: 'The survey has six questions. The sixth question asks how you heard about them. You did not hear about them. You found them. There is no option for this. You close the survey and open a different email.', focusDelta: -5, timeDelta: -8, chaosDelta: 10 },
-            { text: 'The email is from your bank. Your direct debit has changed. You spend four minutes trying to remember what the direct debit is for. It is for a gym you have not been to since February. You make a note to cancel it. The note is the fifteenth such note.', focusDelta: -8, timeDelta: -10, chaosDelta: 12 },
-          ],
+          type: 'MINI_GAME',
+          gameId: 'doom-scroll',
+          description: 'You unlock the phone. The screen fills with things that require your attention, none of which are things you should be attending to.',
         },
       });
 
@@ -687,8 +683,12 @@ export const ROOMS: Record<string, Room> = {
         choices.push({
           id: 'write-report',
           label: 'Write the report',
-          requiresItem: hasDone(s, 'found-report-draft') ? undefined : undefined,
-          action: { type: 'TASK', description: 'You write the report. It takes two hours and thirty-seven minutes. The actual writing takes forty minutes. The rest is preparation, staring, one accidental nap, and a brief detour into researching the history of a word you used in the second paragraph.', focusDelta: -20, timeDelta: -25, chaosDelta: 5, completesAction: 'wrote-report' },
+          action: {
+            type: 'MINI_GAME',
+            gameId: 'priority-queue',
+            description: 'You open the report. The cursor blinks. You have tasks, a deadline, and the specific kind of time pressure that makes everything feel both urgent and impossible. Manage the work block.',
+            completesAction: 'wrote-report',
+          },
         });
       }
 

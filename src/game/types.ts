@@ -66,7 +66,8 @@ export type Action =
   | { type: 'USE'; item: ItemId; description: string; focusDelta?: number; timeDelta?: number; chaosDelta?: number; completesAction?: string }
   | { type: 'DISTRACTION'; description: string; steps: DistractionStep[]; completesAction?: string }
   | { type: 'TASK'; description: string; focusDelta: number; timeDelta: number; chaosDelta?: number; completesAction: string }
-  | { type: 'EXAMINE'; description: string; chaosDelta?: number };
+  | { type: 'EXAMINE'; description: string; chaosDelta?: number }
+  | { type: 'MINI_GAME'; gameId: 'priority-queue' | 'doom-scroll'; description: string; completesAction?: string };
 
 export interface DistractionStep {
   text: string;
@@ -92,12 +93,94 @@ export interface Ending {
   priority: number;
 }
 
+// ─── Mini-game types ──────────────────────────────────────────────────────────
+
+export type MiniCardEffect =
+  | { kind: 'progressTask'; amount: number }
+  | { kind: 'progressAll'; amount: number }
+  | { kind: 'reduceOverwhelm'; amount: number }
+  | { kind: 'draw'; amount: number }
+  | { kind: 'gainEnergy'; amount: number }
+  | { kind: 'extendDeadlines'; amount: number }
+  | { kind: 'lowerEffort'; amount: number };
+
+export interface MiniCard {
+  id: string;
+  name: string;
+  cost: number;
+  rulesText: string;
+  effects: MiniCardEffect[];
+}
+
+export type MiniPressureEffect =
+  | { kind: 'addOverwhelm'; amount: number }
+  | { kind: 'shortenDeadlines'; amount: number }
+  | { kind: 'increaseEffort'; amount: number }
+  | { kind: 'discardRandom'; amount: number };
+
+export interface MiniPressureCard {
+  id: string;
+  name: string;
+  rulesText: string;
+  effects: MiniPressureEffect[];
+}
+
+export interface MiniTask {
+  id: string;
+  name: string;
+  effort: number;
+  deadline: number;
+  progress: number;
+  flavor: string;
+  expired: boolean;
+}
+
+export interface PriorityQueueState {
+  id: 'priority-queue';
+  turn: number;
+  maxTurns: number;
+  energy: number;
+  maxEnergy: number;
+  overwhelm: number;
+  maxOverwhelm: number;
+  hand: string[];
+  drawPile: string[];
+  discardPile: string[];
+  activeTasks: MiniTask[];
+  totalTasks: number;
+  pressureQueue: string[];
+  pressureDiscard: string[];
+  log: string[];
+  result: 'playing' | 'won' | 'partial' | 'lost';
+  selectedCard: string | null;
+  completesAction?: string;
+}
+
+export interface DoomScrollContent {
+  text: string;
+  category: 'social' | 'news' | 'ad' | 'drama' | 'rabbit-hole';
+}
+
+export interface DoomScrollState {
+  id: 'doom-scroll';
+  scrollCount: number;
+  timeCost: number;
+  chaosCost: number;
+  buttonScale: number;
+  contentIndex: number;
+  done: boolean;
+  completesAction?: string;
+}
+
+export type PendingMiniGame = PriorityQueueState | DoomScrollState;
+
 export interface AppState {
   screen: GameScreen;
   player: PlayerState;
   log: LogEntry[];
   pendingDistraction: { steps: DistractionStep[]; stepIndex: number; completesAction?: string } | null;
   awaitingConfirm: { choiceId: string } | null;
+  pendingMiniGame: PendingMiniGame | null;
 }
 
 export interface LogEntry {
@@ -112,4 +195,11 @@ export type AppAction =
   | { type: 'MAKE_CHOICE'; choice: Choice }
   | { type: 'ADVANCE_DISTRACTION' }
   | { type: 'RESIST_DISTRACTION' }
-  | { type: 'CLEAR_LOG' };
+  | { type: 'CLEAR_LOG' }
+  | { type: 'PQ_SELECT_CARD'; cardId: string | null }
+  | { type: 'PQ_PLAY_CARD'; targetTaskId: string }
+  | { type: 'PQ_END_TURN' }
+  | { type: 'PQ_ABANDON' }
+  | { type: 'DS_SCROLL' }
+  | { type: 'DS_PUT_DOWN' }
+  | { type: 'COMPLETE_MINI_GAME' };

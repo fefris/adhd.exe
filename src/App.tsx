@@ -7,7 +7,17 @@ import { GameLog } from './components/GameLog';
 import { ChoicePanel } from './components/ChoicePanel';
 import { ResourceBars } from './components/ResourceBars';
 import { Inventory } from './components/Inventory';
+import { PriorityQueue } from './minigames/PriorityQueue';
+import { DoomScroll } from './minigames/DoomScroll';
 import './styles/terminal.css';
+
+function GameHeader() {
+  return (
+    <div className="game-header">
+      <h1>ADHD.EXE — {new Date().toLocaleDateString('en-GB', { weekday: 'long' }).toUpperCase()}</h1>
+    </div>
+  );
+}
 
 export default function App() {
   const [state, dispatch] = useReducer(appReducer, INITIAL_STATE);
@@ -18,6 +28,14 @@ export default function App() {
   const handleAdvance = useCallback(() => dispatch({ type: 'ADVANCE_DISTRACTION' }), []);
   const handleResist = useCallback(() => dispatch({ type: 'RESIST_DISTRACTION' }), []);
 
+  const handlePqSelectCard = useCallback((cardId: string | null) => dispatch({ type: 'PQ_SELECT_CARD', cardId }), []);
+  const handlePqPlayCard = useCallback((targetTaskId: string) => dispatch({ type: 'PQ_PLAY_CARD', targetTaskId }), []);
+  const handlePqEndTurn = useCallback(() => dispatch({ type: 'PQ_END_TURN' }), []);
+  const handlePqAbandon = useCallback(() => dispatch({ type: 'PQ_ABANDON' }), []);
+  const handleDsScroll = useCallback(() => dispatch({ type: 'DS_SCROLL' }), []);
+  const handleDsPutDown = useCallback(() => dispatch({ type: 'DS_PUT_DOWN' }), []);
+  const handleCompleteMiniGame = useCallback(() => dispatch({ type: 'COMPLETE_MINI_GAME' }), []);
+
   if (state.screen === 'title') {
     return <TitleScreen onStart={handleStart} />;
   }
@@ -26,13 +44,36 @@ export default function App() {
     return <EndScreen player={state.player} onRestart={handleRestart} />;
   }
 
-  const { player, log, pendingDistraction } = state;
+  const { player, log, pendingDistraction, pendingMiniGame } = state;
+
+  if (pendingMiniGame) {
+    return (
+      <div className="game-layout">
+        <GameHeader />
+        {pendingMiniGame.id === 'priority-queue' ? (
+          <PriorityQueue
+            state={pendingMiniGame}
+            onSelectCard={handlePqSelectCard}
+            onPlayCard={handlePqPlayCard}
+            onEndTurn={handlePqEndTurn}
+            onAbandon={handlePqAbandon}
+            onComplete={handleCompleteMiniGame}
+          />
+        ) : (
+          <DoomScroll
+            state={pendingMiniGame}
+            onScroll={handleDsScroll}
+            onPutDown={handleDsPutDown}
+            onComplete={handleCompleteMiniGame}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="game-layout">
-      <div className="game-header">
-        <h1>ADHD.EXE — {new Date().toLocaleDateString('en-GB', { weekday: 'long' }).toUpperCase()}</h1>
-      </div>
+      <GameHeader />
       <div className="game-main">
         <div className="game-log-col">
           <GameLog log={log} chaos={player.chaos} />

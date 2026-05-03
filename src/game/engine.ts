@@ -2,6 +2,12 @@ import type { AppState, AppAction, PlayerState, LogEntry, Choice } from './types
 import { ROOMS } from './rooms';
 import { ENDINGS } from './endings';
 import { ITEM_NAMES } from './items';
+import {
+  createPriorityQueueState, createDoomScrollState,
+  pqSelectCard, pqPlayCard, pqEndTurn, pqAbandon,
+  dsScroll, dsPutDown, resolveMiniGame,
+} from '../minigames/miniGameEngine';
+import { MINI_CARDS } from '../minigames/miniGameContent';
 
 export const INITIAL_PLAYER: PlayerState = {
   focus: 80,
@@ -20,6 +26,7 @@ export const INITIAL_STATE: AppState = {
   log: [],
   pendingDistraction: null,
   awaitingConfirm: null,
+  pendingMiniGame: null,
 };
 
 function clamp(v: number, min: number, max: number) {
@@ -205,9 +212,78 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           log.push(entry(act.description, 'action'));
           break;
         }
+
+        case 'MINI_GAME': {
+          log.push(entry(act.description, 'action'));
+          const miniGame = act.gameId === 'priority-queue'
+            ? createPriorityQueueState(player.chaos, act.completesAction)
+            : createDoomScrollState(act.completesAction);
+          return { ...state, player, log, pendingMiniGame: miniGame };
+        }
       }
 
       return { ...state, player, log };
+    }
+
+    case 'PQ_SELECT_CARD': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'priority-queue') return state;
+      if (action.cardId) {
+        const card = MINI_CARDS[action.cardId];
+        if (card) {
+          const needsTarget = card.effects.some(e => e.kind === 'progressTask');
+          if (!needsTarget) {
+            const selected = pqSelectCard(mg, action.cardId);
+            return { ...state, pendingMiniGame: pqPlayCard(selected) };
+          }
+        }
+      }
+      return { ...state, pendingMiniGame: pqSelectCard(mg, action.cardId) };
+    }
+
+    case 'PQ_PLAY_CARD': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'priority-queue') return state;
+      return { ...state, pendingMiniGame: pqPlayCard(mg, action.targetTaskId) };
+    }
+
+    case 'PQ_END_TURN': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'priority-queue') return state;
+      return { ...state, pendingMiniGame: pqEndTurn(mg) };
+    }
+
+    case 'PQ_ABANDON': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'priority-queue') return state;
+      return { ...state, pendingMiniGame: pqAbandon(mg) };
+    }
+
+    case 'DS_SCROLL': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'doom-scroll') return state;
+      return { ...state, pendingMiniGame: dsScroll(mg) };
+    }
+
+    case 'DS_PUT_DOWN': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'doom-scroll') return state;
+      return { ...state, pendingMiniGame: dsPutDown(mg) };
+    }
+
+    case 'COMPLETE_MINI_GAME': {
+      const mg = state.pendingMiniGame;
+      if (!mg) return state;
+      const resolution = resolveMiniGame(mg);
+      let player = applyDeltas(state.player, resolution.focusDelta, resolution.timeDelta, resolution.chaosDelta);
+      if (resolution.completesAction && !player.completedActions.includes(resolution.completesAction)) {
+        player = { ...player, completedActions: [...player.completedActions, resolution.completesAction] };
+      }
+      const log = [...state.log, entry(resolution.message, 'action')];
+      if (player.time <= 0 || player.focus <= 0) {
+        return { ...state, player, log, pendingMiniGame: null, screen: 'end' };
+      }
+      return { ...state, player, log: [...log, roomEntry(player)], pendingMiniGame: null };
     }
 
     case 'CLEAR_LOG':

@@ -1,0 +1,547 @@
+/* ── Mini-game shared overlay ── */
+.minigame-overlay {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.minigame-header {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.minigame-title {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--green-dim);
+  text-transform: uppercase;
+}
+
+.minigame-abandon {
+  background: transparent;
+  border: 1px solid #2a0a0a;
+  color: #664444;
+  font-family: var(--font);
+  font-size: 10px;
+  padding: 3px 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+
+.minigame-abandon:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* ── Priority Queue ── */
+.pq-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 12px 16px;
+  gap: 10px;
+}
+
+.pq-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 11px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.pq-turn {
+  color: var(--green);
+  letter-spacing: 2px;
+}
+
+.pq-energy {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.pq-energy-label {
+  letter-spacing: 1px;
+  margin-right: 4px;
+}
+
+.pq-pip {
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--border);
+  background: var(--green-dark);
+}
+
+.pq-pip.filled {
+  background: var(--green);
+}
+
+.pq-overwhelm-track {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pq-overwhelm-bar {
+  width: 100px;
+  height: 8px;
+  background: var(--green-dark);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.pq-overwhelm-fill {
+  height: 100%;
+  background: var(--amber);
+  transition: width 0.3s ease;
+}
+
+.pq-overwhelm-fill.critical {
+  background: var(--red);
+  animation: flicker 0.5s infinite;
+}
+
+/* ── Task cards ── */
+.pq-tasks {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pq-task {
+  flex: 1;
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  cursor: default;
+  transition: border-color 0.15s;
+  min-width: 0;
+}
+
+.pq-task.targetable {
+  cursor: pointer;
+  border-color: var(--green-dim);
+}
+
+.pq-task.targetable:hover {
+  border-color: var(--green);
+  background: rgba(0, 255, 65, 0.04);
+}
+
+.pq-task.completed {
+  border-color: #0a2a0a;
+  opacity: 0.6;
+}
+
+.pq-task.expired {
+  border-color: #1a0a0a;
+  opacity: 0.4;
+}
+
+.pq-task-name {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--green);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pq-task.completed .pq-task-name {
+  color: var(--green-dim);
+}
+
+.pq-task.expired .pq-task-name {
+  color: var(--text-dim);
+  text-decoration: line-through;
+}
+
+.pq-task-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pq-progress-bar {
+  flex: 1;
+  height: 5px;
+  background: var(--green-dark);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.pq-progress-fill {
+  height: 100%;
+  background: var(--green);
+  transition: width 0.3s ease;
+}
+
+.pq-task.completed .pq-progress-fill {
+  background: var(--green-dim);
+}
+
+.pq-progress-label {
+  font-size: 9px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.pq-task-deadline {
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+.pq-task-deadline.urgent {
+  color: var(--amber);
+}
+
+.pq-task-deadline.critical {
+  color: var(--red);
+}
+
+.pq-task-flavor {
+  font-size: 9px;
+  color: var(--text-dim);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* ── Hand ── */
+.pq-hand-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.pq-hand-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.pq-hand {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+  align-content: flex-start;
+  overflow-y: auto;
+}
+
+.pq-card {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  cursor: pointer;
+  width: 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.pq-card:hover {
+  border-color: var(--green);
+  background: rgba(0, 255, 65, 0.04);
+}
+
+.pq-card.selected {
+  border-color: var(--green);
+  background: rgba(0, 255, 65, 0.08);
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.15);
+}
+
+.pq-card.unaffordable {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pq-card.unaffordable:hover {
+  border-color: var(--border);
+  background: transparent;
+}
+
+.pq-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pq-card-name {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--green);
+  text-transform: uppercase;
+}
+
+.pq-card-cost {
+  font-size: 10px;
+  color: var(--amber);
+}
+
+.pq-card-rules {
+  font-size: 9px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+/* ── Actions ── */
+.pq-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.pq-end-turn {
+  background: transparent;
+  border: 1px solid var(--green-dim);
+  color: var(--green);
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 8px 20px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.pq-end-turn:hover {
+  background: rgba(0, 255, 65, 0.08);
+  border-color: var(--green);
+}
+
+.pq-hint {
+  font-size: 10px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+/* ── PQ Log ── */
+.pq-log {
+  height: 60px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+  padding: 6px 0;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pq-log-line {
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.pq-log-line.pressure {
+  color: var(--amber);
+}
+
+.pq-log-line.turn-marker {
+  color: var(--green-dim);
+  letter-spacing: 1px;
+}
+
+/* ── PQ Result screen ── */
+.pq-result {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 32px;
+  text-align: center;
+}
+
+.pq-result-label {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--text-dim);
+}
+
+.pq-result-title {
+  font-size: 20px;
+  letter-spacing: 3px;
+}
+
+.pq-result-title.won { color: var(--green); }
+.pq-result-title.partial { color: var(--amber); }
+.pq-result-title.lost { color: var(--red); }
+
+.pq-result-message {
+  max-width: 400px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text);
+  font-style: italic;
+}
+
+.pq-continue-btn {
+  background: transparent;
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 10px 28px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  transition: background 0.15s;
+}
+
+.pq-continue-btn:hover {
+  background: rgba(0, 255, 65, 0.1);
+}
+
+/* ── Doom Scroll ── */
+.ds-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 32px;
+  gap: 20px;
+  overflow: hidden;
+}
+
+.ds-label {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+  align-self: flex-start;
+}
+
+.ds-content-card {
+  width: 100%;
+  max-width: 520px;
+  border: 1px solid var(--border);
+  padding: 20px 24px;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+}
+
+.ds-content-text {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+.ds-scroll-count {
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  align-self: flex-start;
+}
+
+.ds-scroll-count.warning {
+  color: var(--amber);
+}
+
+.ds-buttons {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.ds-scroll-btn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--green-dim);
+  color: var(--green);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 12px;
+  cursor: pointer;
+  letter-spacing: 3px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ds-scroll-btn:hover {
+  background: rgba(0, 255, 65, 0.08);
+  border-color: var(--green);
+}
+
+.ds-putdown-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 6px 16px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: border-color 0.15s, color 0.15s, opacity 0.3s;
+  transform-origin: center;
+}
+
+.ds-putdown-btn:hover {
+  border-color: var(--green-dim);
+  color: var(--text);
+}
+
+/* ── DS Result screen ── */
+.ds-result {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 32px;
+  text-align: center;
+}
+
+.ds-result-message {
+  max-width: 400px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text);
+  font-style: italic;
+}
+
+.ds-result-stat {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+.ds-continue-btn {
+  background: transparent;
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 10px 28px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  transition: background 0.15s;
+}
+
+.ds-continue-btn:hover {
+  background: rgba(0, 255, 65, 0.1);
+}
