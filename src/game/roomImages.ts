@@ -4,6 +4,7 @@ import homeOffice from '../assets/rooms/home-office.png';
 import hallway from '../assets/rooms/hallway.png';
 import kitchen from '../assets/rooms/kitchen.png';
 import backyard from '../assets/rooms/backyard.png';
+import frontGarden from '../assets/rooms/front-garden.png';
 import commute from '../assets/rooms/commute.png';
 import officeLobby from '../assets/rooms/office-lobby.png';
 import breakRoom from '../assets/rooms/break-room.png';
@@ -23,6 +24,7 @@ export const ROOM_IMAGES: Record<RoomId, string> = {
   hallway,
   kitchen,
   backyard,
+  'front-garden': frontGarden,
   commute,
   'office-lobby': officeLobby,
   'break-room': breakRoom,

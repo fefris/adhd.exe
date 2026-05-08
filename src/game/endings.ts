@@ -4,13 +4,37 @@ function hasDone(s: PlayerState, a: string) {
   return s.completedActions.includes(a);
 }
 
+function hasVisited(s: PlayerState, room: string) {
+  return s.visitedRooms.includes(room as never);
+}
+
+function reachedOffice(s: PlayerState) {
+  return s.visitedRooms.some(room =>
+    ['office-lobby', 'break-room', 'open-plan', 'colleague-desk', 'meeting-room', 'bathroom-work', 'your-desk', 'supply-closet'].includes(room)
+  );
+}
+
 export const ENDINGS: Ending[] = [
   {
     id: 'secret-never-left-house',
     priority: 100,
     title: 'THE HOUSE WON',
     body: `You did not leave the house today.\n\nThis is not a failure of character. It is a statistical outcome of the morning sequence encountering too many variables. The house presented options. You engaged with them. Time, as it tends to, passed.\n\nYou are still here. The day technically happened. Just not in the places it was supposed to happen.\n\nYou make a note to try again tomorrow. This is the fourteenth such note. Each one was sincere.`,
-    condition: (s) => !hasDone(s, 'badge-in') && s.time <= 10,
+    condition: (s) => !hasVisited(s, 'front-garden') && !hasVisited(s, 'commute') && !reachedOffice(s) && s.time <= 10,
+  },
+  {
+    id: 'office-fizzle',
+    priority: 100,
+    title: 'OFFICE, TECHNICALLY',
+    body: `You made it to the office.\n\nThis matters. The house did not win. The commute happened. You crossed the threshold into the building and became, in the administrative sense, someone who had arrived.\n\nThen the day kept asking for things. Meetings, slides, bathrooms, emails, tiny visual errors in presentations. Each request was small enough to seem manageable and numerous enough to become weather.\n\nBy the time your resources hit zero, you were not at home. You were in the machinery of the day, doing what you could with what was left.\n\nThat is a different kind of ending. Not triumphant. Not nothing.`,
+    condition: (s) => reachedOffice(s) && (s.time <= 0 || s.focus <= 0),
+  },
+  {
+    id: 'commute-collapse',
+    priority: 100,
+    title: 'LOST IN TRANSIT',
+    body: `You left the house.\n\nThis is important for the record. Shoes, keys, door, outside world: all achieved. The day had forward motion for a while.\n\nThen the commute absorbed the remaining usable parts of you. The waiting, the scrolling, the announcements, the small logistics of being a person among other people. None of it was individually impossible. Together, it was enough.\n\nYou did not fail to start. You ran out somewhere between places, which is one of the day’s more irritating tricks.`,
+    condition: (s) => hasVisited(s, 'commute') && !reachedOffice(s) && (s.time <= 0 || s.focus <= 0),
   },
   {
     id: 'secret-no-meds',

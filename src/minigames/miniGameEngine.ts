@@ -1,5 +1,5 @@
 import { shuffle } from '../utils';
-import type { PriorityQueueState, DoomScrollState, TheMeetingState, TimeBlindnessState, ContextSwitchState, MiniTask, PendingMiniGame } from '../game/types';
+import type { PriorityQueueState, DoomScrollState, TheMeetingState, TimeBlindnessState, ContextSwitchState, PixelPerfectState, FishTankState, MiniTask, PendingMiniGame } from '../game/types';
 import {
   MINI_CARDS, MINI_TASKS_DATA, MINI_PRESSURE_DATA,
   PRIORITY_QUEUE_DECK, PRIORITY_QUEUE_TASK_IDS, PRIORITY_QUEUE_PRESSURE,
@@ -567,10 +567,243 @@ export function csResolve(state: ContextSwitchState): MiniGameResolution {
 
 // ─── Shared resolver ──────────────────────────────────────────────────────────
 
+export function createPixelPerfectState(completesAction?: string): PixelPerfectState {
+  return {
+    id: 'pixel-perfect',
+    actionsRemaining: 12,
+    maxActions: 12,
+    selectedElementId: 'title',
+    done: false,
+    completesAction,
+    log: [
+      'The presenter advances the slide. The title is three pixels wrong. The chart is worse.',
+      'Fix what matters before the presenter moves on.',
+    ],
+    elements: [
+      { id: 'title', name: 'Title', role: 'critical', x: 31, y: 25, targetX: 28, targetY: 24, width: 142, height: 20 },
+      { id: 'chart', name: 'Chart', role: 'critical', x: 199, y: 83, targetX: 192, targetY: 80, width: 82, height: 58 },
+      { id: 'bullets', name: 'Bullets', role: 'critical', x: 38, y: 82, targetX: 40, targetY: 80, width: 108, height: 64 },
+      { id: 'logo', name: 'Logo', role: 'cosmetic', x: 260, y: 24, targetX: 264, targetY: 24, width: 18, height: 18 },
+      { id: 'footer', name: 'Footer', role: 'cosmetic', x: 140, y: 165, targetX: 136, targetY: 164, width: 64, height: 8 },
+    ],
+  };
+}
+
+function ppElementDistance(element: PixelPerfectState['elements'][number]): number {
+  return Math.abs(element.x - element.targetX) + Math.abs(element.y - element.targetY);
+}
+
+export function ppSelectElement(state: PixelPerfectState, elementId: string): PixelPerfectState {
+  if (state.done || !state.elements.some(element => element.id === elementId)) return state;
+  return { ...state, selectedElementId: elementId };
+}
+
+export function ppNudge(state: PixelPerfectState, dx: number, dy: number): PixelPerfectState {
+  if (state.done || state.actionsRemaining <= 0) return state;
+
+  const selected = state.elements.find(element => element.id === state.selectedElementId);
+  if (!selected) return state;
+
+  const step = 3;
+  const wasDistance = ppElementDistance(selected);
+  const elements = state.elements.map(element => {
+    if (element.id !== selected.id) return element;
+    return {
+      ...element,
+      x: Math.max(8, Math.min(292 - element.width, element.x + dx * step)),
+      y: Math.max(8, Math.min(172 - element.height, element.y + dy * step)),
+    };
+  });
+  const updated = elements.find(element => element.id === selected.id) ?? selected;
+  const isDistance = ppElementDistance(updated);
+  const line = isDistance < wasDistance
+    ? `${selected.name}: closer. This is satisfying in a way the meeting is not.`
+    : `${selected.name}: technically moved. Emotionally unresolved.`;
+
+  return {
+    ...state,
+    elements,
+    actionsRemaining: state.actionsRemaining - 1,
+    done: state.actionsRemaining <= 1,
+    log: [...state.log, line],
+  };
+}
+
+export function ppFinish(state: PixelPerfectState): PixelPerfectState {
+  if (state.done) return state;
+  return { ...state, done: true, log: [...state.log, 'You let the slide go. Mostly.'] };
+}
+
+export function ppResolve(state: PixelPerfectState): MiniGameResolution {
+  const aligned = state.elements.filter(element => ppElementDistance(element) <= 2);
+  const criticalAligned = aligned.filter(element => element.role === 'critical').length;
+  const cosmeticAligned = aligned.filter(element => element.role === 'cosmetic').length;
+  const spent = state.maxActions - state.actionsRemaining;
+
+  if (criticalAligned >= 3 && cosmeticAligned <= 1) {
+    return {
+      focusDelta: 5,
+      timeDelta: -8,
+      chaosDelta: -8,
+      message: 'You fix the title, the chart, and the bullets. The slide becomes bearable. You do not chase the footer. This is growth.',
+      completesAction: state.completesAction,
+    };
+  }
+
+  if (criticalAligned >= 3) {
+    return {
+      focusDelta: -3,
+      timeDelta: -12,
+      chaosDelta: 8,
+      message: 'The important parts are aligned. Then you spend the remaining attention budget on the logo and footer. Nobody else can tell. You can tell.',
+      completesAction: state.completesAction,
+    };
+  }
+
+  if (criticalAligned >= 2) {
+    return {
+      focusDelta: -5,
+      timeDelta: -10,
+      chaosDelta: 12,
+      message: 'Some of the slide is better. Some of it is still wrong. The presenter has moved on. The wrong parts move with you.',
+      completesAction: state.completesAction,
+    };
+  }
+
+  return {
+    focusDelta: spent >= state.maxActions ? -12 : -8,
+    timeDelta: -8,
+    chaosDelta: spent >= state.maxActions ? 22 : 16,
+    message: 'You nudge rectangles while the presentation continues. The slide remains wrong in new and interesting ways.',
+    completesAction: state.completesAction,
+  };
+}
+
+export function createFishTankState(completesAction?: string): FishTankState {
+  return {
+    id: 'fish-tank',
+    watchCount: 0,
+    maxWatchCount: 6,
+    fascination: 0,
+    namedFish: false,
+    researchedFish: false,
+    selectedFishId: null,
+    done: false,
+    completesAction,
+    log: ['The screensaver fish drift across the monitor. One of them has purpose. You are almost certain.'],
+  };
+}
+
+export function ftSelectFish(state: FishTankState, fishId: string): FishTankState {
+  if (state.done) return state;
+  return {
+    ...state,
+    selectedFishId: fishId,
+    fascination: state.fascination + 1,
+    log: [...state.log, `You choose ${fishId}. This was not a decision you planned to make.`],
+  };
+}
+
+export function ftKeepWatching(state: FishTankState): FishTankState {
+  if (state.done) return state;
+  const watchCount = state.watchCount + 1;
+  const observations = [
+    'The fish crosses behind the castle. This feels narratively significant.',
+    'Two fish almost line up. You wait to see if they will do it properly.',
+    'The orange fish changes direction with what looks like intention.',
+    'You notice the bubble loop repeats every few seconds. You begin timing it.',
+    'The fish are not real. This does not reduce their hold on you.',
+    'You have become the world expert on this specific screensaver.',
+  ];
+
+  return {
+    ...state,
+    watchCount,
+    fascination: state.fascination + 2,
+    done: watchCount >= state.maxWatchCount,
+    log: [...state.log, observations[Math.min(watchCount - 1, observations.length - 1)]],
+  };
+}
+
+export function ftNameFish(state: FishTankState): FishTankState {
+  if (state.done || state.namedFish) return state;
+  return {
+    ...state,
+    namedFish: true,
+    fascination: state.fascination + 3,
+    watchCount: state.watchCount + 1,
+    done: state.watchCount + 1 >= state.maxWatchCount,
+    log: [...state.log, 'You name one of them Captain Spreadsheet. This makes leaving harder.'],
+  };
+}
+
+export function ftResearchFish(state: FishTankState): FishTankState {
+  if (state.done || state.researchedFish) return state;
+  return {
+    ...state,
+    researchedFish: true,
+    fascination: state.fascination + 4,
+    watchCount: state.watchCount + 2,
+    done: state.watchCount + 2 >= state.maxWatchCount,
+    log: [...state.log, 'You search whether digital fish sleep. The answer is obvious and still unsatisfying.'],
+  };
+}
+
+export function ftWalkAway(state: FishTankState): FishTankState {
+  if (state.done) return state;
+  return {
+    ...state,
+    done: true,
+    log: [...state.log, state.watchCount <= 1 ? 'You walk away before the fish become a project.' : 'You step back from the monitor. The fish continue without you, probably.'],
+  };
+}
+
+export function ftResolve(state: FishTankState): MiniGameResolution {
+  if (state.watchCount <= 1 && state.fascination <= 2) {
+    return {
+      focusDelta: 3,
+      timeDelta: -2,
+      chaosDelta: -2,
+      message: 'You notice the fish and then leave. A clean break. The fish remain fish-sized.',
+      completesAction: state.completesAction,
+    };
+  }
+
+  if (state.watchCount <= 3 && !state.researchedFish) {
+    return {
+      focusDelta: -3,
+      timeDelta: -6,
+      chaosDelta: 8,
+      message: 'You watch the fish for a while. Not a disastrous while. Long enough that the monitor has become a location in your day.',
+      completesAction: state.completesAction,
+    };
+  }
+
+  if (state.researchedFish || state.namedFish) {
+    return {
+      focusDelta: -8,
+      timeDelta: -12,
+      chaosDelta: 18,
+      message: 'The fish now have names, motives, and a search history. You return to the room with less time and more narrative responsibility.',
+      completesAction: state.completesAction,
+    };
+  }
+
+  return {
+    focusDelta: -12,
+    timeDelta: -15,
+    chaosDelta: 24,
+    message: 'You watch until the loop folds back on itself. The fish were never going anywhere. Somehow, neither were you.',
+    completesAction: state.completesAction,
+  };
+}
+
 export function resolveMiniGame(mg: PendingMiniGame): MiniGameResolution {
   if (mg.id === 'priority-queue') return pqResolve(mg);
   if (mg.id === 'doom-scroll') return dsResolve(mg);
   if (mg.id === 'the-meeting') return tmResolve(mg);
   if (mg.id === 'time-blindness') return tbResolve(mg);
+  if (mg.id === 'pixel-perfect') return ppResolve(mg);
+  if (mg.id === 'fish-tank') return ftResolve(mg);
   return csResolve(mg);
 }

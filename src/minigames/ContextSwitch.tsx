@@ -10,22 +10,16 @@ interface Props {
   onComplete: () => void;
 }
 
-export function ContextSwitch({ state, onMemorizeDone, onSelectWord, onComplete }: Props) {
+function MemorizePhase({ words, onMemorizeDone }: { words: string[]; onMemorizeDone: () => void }) {
   const [timeLeft, setTimeLeft] = useState(4);
   const firedRef = useRef(false);
-  const onMemorizeDoneRef = useRef(onMemorizeDone);
-  onMemorizeDoneRef.current = onMemorizeDone;
 
   useEffect(() => {
-    if (state.phase !== 'memorize') return;
-    setTimeLeft(4);
-    firedRef.current = false;
-
     const tickId = setInterval(() => setTimeLeft(t => Math.max(0, t - 1)), 1000);
     const autoId = setTimeout(() => {
       if (!firedRef.current) {
         firedRef.current = true;
-        onMemorizeDoneRef.current();
+        onMemorizeDone();
       }
     }, 4500);
 
@@ -33,7 +27,7 @@ export function ContextSwitch({ state, onMemorizeDone, onSelectWord, onComplete 
       clearInterval(tickId);
       clearTimeout(autoId);
     };
-  }, [state.phase]);
+  }, [onMemorizeDone]);
 
   const handleReady = () => {
     if (firedRef.current) return;
@@ -41,6 +35,26 @@ export function ContextSwitch({ state, onMemorizeDone, onSelectWord, onComplete 
     onMemorizeDone();
   };
 
+  return (
+    <div className="minigame-overlay">
+      <div className="minigame-header">
+        <span className="minigame-title">CONTEXT SWITCH</span>
+        <span className="tm-progress">{timeLeft}s</span>
+      </div>
+      <div className="cs-layout">
+        <div className="cs-phase-label">Remember these four things:</div>
+        <div className="cs-words-grid">
+          {words.map(w => (
+            <div key={w} className="cs-word-display">{w}</div>
+          ))}
+        </div>
+        <button className="cs-ready-btn" onClick={handleReady}>I have them</button>
+      </div>
+    </div>
+  );
+}
+
+export function ContextSwitch({ state, onMemorizeDone, onSelectWord, onComplete }: Props) {
   if (state.phase === 'done') {
     const res = csResolve(state);
     const correct = state.selectedWords.filter(w => state.words.includes(w)).length;
@@ -69,23 +83,7 @@ export function ContextSwitch({ state, onMemorizeDone, onSelectWord, onComplete 
   }
 
   if (state.phase === 'memorize') {
-    return (
-      <div className="minigame-overlay">
-        <div className="minigame-header">
-          <span className="minigame-title">CONTEXT SWITCH</span>
-          <span className="tm-progress">{timeLeft}s</span>
-        </div>
-        <div className="cs-layout">
-          <div className="cs-phase-label">Remember these four things:</div>
-          <div className="cs-words-grid">
-            {state.words.map(w => (
-              <div key={w} className="cs-word-display">{w}</div>
-            ))}
-          </div>
-          <button className="cs-ready-btn" onClick={handleReady}>I have them</button>
-        </div>
-      </div>
-    );
+    return <MemorizePhase key={state.words.join('|')} words={state.words} onMemorizeDone={onMemorizeDone} />;
   }
 
   return (

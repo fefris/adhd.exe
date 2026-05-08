@@ -10,22 +10,16 @@ interface Props {
   onComplete: () => void;
 }
 
-export function TheMeeting({ state, onEngage, onZoneOut, onComplete }: Props) {
+function ActiveMeetingRound({ state, onEngage, onZoneOut }: Omit<Props, 'onComplete'>) {
   const [timeLeft, setTimeLeft] = useState(5);
   const advancedRef = useRef(false);
-  const onZoneOutRef = useRef(onZoneOut);
-  onZoneOutRef.current = onZoneOut;
 
   useEffect(() => {
-    if (state.done) return;
-    setTimeLeft(5);
-    advancedRef.current = false;
-
     const tickId = setInterval(() => setTimeLeft(t => Math.max(0, t - 1)), 1000);
     const autoId = setTimeout(() => {
       if (!advancedRef.current) {
         advancedRef.current = true;
-        onZoneOutRef.current();
+        onZoneOut();
       }
     }, 5500);
 
@@ -33,7 +27,7 @@ export function TheMeeting({ state, onEngage, onZoneOut, onComplete }: Props) {
       clearInterval(tickId);
       clearTimeout(autoId);
     };
-  }, [state.round, state.done]);
+  }, [onZoneOut]);
 
   const handleEngage = () => {
     if (advancedRef.current) return;
@@ -46,26 +40,6 @@ export function TheMeeting({ state, onEngage, onZoneOut, onComplete }: Props) {
     advancedRef.current = true;
     onZoneOut();
   };
-
-  if (state.done) {
-    const res = tmResolve(state);
-    const engagedPct = Math.round((state.engaged / state.maxRounds) * 100);
-    return (
-      <div className="minigame-overlay">
-        <div className="minigame-header">
-          <span className="minigame-title">THE MEETING</span>
-        </div>
-        <div className="tm-result">
-          <div className="tm-result-label">MEETING ADJOURNED</div>
-          <div className="tm-result-stat">
-            Engaged {state.engaged}/{state.maxRounds} rounds ({engagedPct}%)
-          </div>
-          <div className="tm-result-message">{res.message}</div>
-          <button className="pq-continue-btn" onClick={onComplete}>&gt; CONTINUE</button>
-        </div>
-      </div>
-    );
-  }
 
   const buzzword = getBuzzword(state.round);
   const timerPct = (timeLeft / 5) * 100;
@@ -108,4 +82,28 @@ export function TheMeeting({ state, onEngage, onZoneOut, onComplete }: Props) {
       </div>
     </div>
   );
+}
+
+export function TheMeeting({ state, onEngage, onZoneOut, onComplete }: Props) {
+  if (state.done) {
+    const res = tmResolve(state);
+    const engagedPct = Math.round((state.engaged / state.maxRounds) * 100);
+    return (
+      <div className="minigame-overlay">
+        <div className="minigame-header">
+          <span className="minigame-title">THE MEETING</span>
+        </div>
+        <div className="tm-result">
+          <div className="tm-result-label">MEETING ADJOURNED</div>
+          <div className="tm-result-stat">
+            Engaged {state.engaged}/{state.maxRounds} rounds ({engagedPct}%)
+          </div>
+          <div className="tm-result-message">{res.message}</div>
+          <button className="pq-continue-btn" onClick={onComplete}>&gt; CONTINUE</button>
+        </div>
+      </div>
+    );
+  }
+
+  return <ActiveMeetingRound key={state.round} state={state} onEngage={onEngage} onZoneOut={onZoneOut} />;
 }

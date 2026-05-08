@@ -10,6 +10,8 @@ import {
   tmEngage, tmZoneOut,
   tbGuess,
   csMemorizeDone, csSelectWord,
+  createPixelPerfectState, ppSelectElement, ppNudge, ppFinish,
+  createFishTankState, ftSelectFish, ftKeepWatching, ftNameFish, ftResearchFish, ftWalkAway,
   resolveMiniGame,
 } from '../minigames/miniGameEngine';
 import { MINI_CARDS } from '../minigames/miniGameContent';
@@ -153,6 +155,16 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           }
           const nextRoom = ROOMS[act.to];
           if (!nextRoom) return state;
+          if (act.description) {
+            player = applyDeltas(player, act.focusDelta ?? 0, act.timeDelta ?? 0, act.chaosDelta ?? 0);
+            if (act.completesAction && !player.completedActions.includes(act.completesAction)) {
+              player = { ...player, completedActions: [...player.completedActions, act.completesAction] };
+            }
+            log.push(entry(act.description, 'action'));
+            if (player.time <= 0 || player.focus <= 0) {
+              return { ...state, player, log, screen: 'end' };
+            }
+          }
           player = {
             ...player,
             currentRoom: act.to,
@@ -235,8 +247,12 @@ export function appReducer(state: AppState, action: AppAction): AppState {
               act.taskChaosDelta ?? 0,
               act.completesAction,
             );
-          } else {
+          } else if (act.gameId === 'context-switch') {
             miniGame = createContextSwitchState(act.completesAction);
+          } else if (act.gameId === 'pixel-perfect') {
+            miniGame = createPixelPerfectState(act.completesAction);
+          } else {
+            miniGame = createFishTankState(act.completesAction);
           }
           return { ...state, player, log, pendingMiniGame: miniGame };
         }
@@ -334,6 +350,54 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       const mg = state.pendingMiniGame;
       if (!mg || mg.id !== 'context-switch') return state;
       return { ...state, pendingMiniGame: csSelectWord(mg, action.word) };
+    }
+
+    case 'PP_SELECT_ELEMENT': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'pixel-perfect') return state;
+      return { ...state, pendingMiniGame: ppSelectElement(mg, action.elementId) };
+    }
+
+    case 'PP_NUDGE': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'pixel-perfect') return state;
+      return { ...state, pendingMiniGame: ppNudge(mg, action.dx, action.dy) };
+    }
+
+    case 'PP_FINISH': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'pixel-perfect') return state;
+      return { ...state, pendingMiniGame: ppFinish(mg) };
+    }
+
+    case 'FT_SELECT_FISH': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'fish-tank') return state;
+      return { ...state, pendingMiniGame: ftSelectFish(mg, action.fishId) };
+    }
+
+    case 'FT_KEEP_WATCHING': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'fish-tank') return state;
+      return { ...state, pendingMiniGame: ftKeepWatching(mg) };
+    }
+
+    case 'FT_NAME_FISH': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'fish-tank') return state;
+      return { ...state, pendingMiniGame: ftNameFish(mg) };
+    }
+
+    case 'FT_RESEARCH_FISH': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'fish-tank') return state;
+      return { ...state, pendingMiniGame: ftResearchFish(mg) };
+    }
+
+    case 'FT_WALK_AWAY': {
+      const mg = state.pendingMiniGame;
+      if (!mg || mg.id !== 'fish-tank') return state;
+      return { ...state, pendingMiniGame: ftWalkAway(mg) };
     }
 
     case 'CLEAR_LOG':

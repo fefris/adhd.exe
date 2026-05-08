@@ -5,6 +5,7 @@ export type RoomId =
   | 'hallway'
   | 'kitchen'
   | 'backyard'
+  | 'front-garden'
   | 'commute'
   | 'office-lobby'
   | 'break-room'
@@ -30,6 +31,8 @@ export type ItemId =
 export type EndingId =
   | 'somehow-functional'
   | 'productive-chaos'
+  | 'office-fizzle'
+  | 'commute-collapse'
   | 'hyperfocus-void'
   | 'survived-barely'
   | 'chaos-consumed-you'
@@ -61,13 +64,13 @@ export interface Choice {
 }
 
 export type Action =
-  | { type: 'MOVE'; to: RoomId }
+  | { type: 'MOVE'; to: RoomId; description?: string; focusDelta?: number; timeDelta?: number; chaosDelta?: number; completesAction?: string }
   | { type: 'TAKE'; item: ItemId; description: string }
   | { type: 'USE'; item: ItemId; description: string; focusDelta?: number; timeDelta?: number; chaosDelta?: number; completesAction?: string }
   | { type: 'DISTRACTION'; description: string; steps: DistractionStep[]; completesAction?: string }
   | { type: 'TASK'; description: string; focusDelta: number; timeDelta: number; chaosDelta?: number; completesAction: string }
   | { type: 'EXAMINE'; description: string; chaosDelta?: number }
-  | { type: 'MINI_GAME'; gameId: 'priority-queue' | 'doom-scroll' | 'the-meeting' | 'time-blindness' | 'context-switch'; description: string; completesAction?: string; taskLabel?: string; taskFocusDelta?: number; taskTimeDelta?: number; taskChaosDelta?: number };
+  | { type: 'MINI_GAME'; gameId: 'priority-queue' | 'doom-scroll' | 'the-meeting' | 'time-blindness' | 'context-switch' | 'pixel-perfect' | 'fish-tank'; description: string; completesAction?: string; taskLabel?: string; taskFocusDelta?: number; taskTimeDelta?: number; taskChaosDelta?: number };
 
 export interface DistractionStep {
   text: string;
@@ -204,7 +207,43 @@ export interface ContextSwitchState {
   completesAction?: string;
 }
 
-export type PendingMiniGame = PriorityQueueState | DoomScrollState | TheMeetingState | TimeBlindnessState | ContextSwitchState;
+export interface PixelPerfectElement {
+  id: string;
+  name: string;
+  role: 'critical' | 'cosmetic';
+  x: number;
+  y: number;
+  targetX: number;
+  targetY: number;
+  width: number;
+  height: number;
+}
+
+export interface PixelPerfectState {
+  id: 'pixel-perfect';
+  actionsRemaining: number;
+  maxActions: number;
+  selectedElementId: string;
+  elements: PixelPerfectElement[];
+  log: string[];
+  done: boolean;
+  completesAction?: string;
+}
+
+export interface FishTankState {
+  id: 'fish-tank';
+  watchCount: number;
+  maxWatchCount: number;
+  fascination: number;
+  namedFish: boolean;
+  researchedFish: boolean;
+  selectedFishId: string | null;
+  log: string[];
+  done: boolean;
+  completesAction?: string;
+}
+
+export type PendingMiniGame = PriorityQueueState | DoomScrollState | TheMeetingState | TimeBlindnessState | ContextSwitchState | PixelPerfectState | FishTankState;
 
 export interface AppState {
   screen: GameScreen;
@@ -239,4 +278,12 @@ export type AppAction =
   | { type: 'TM_ZONE_OUT' }
   | { type: 'TB_GUESS'; minutes: number }
   | { type: 'CS_MEMORIZE_DONE' }
-  | { type: 'CS_SELECT_WORD'; word: string };
+  | { type: 'CS_SELECT_WORD'; word: string }
+  | { type: 'PP_SELECT_ELEMENT'; elementId: string }
+  | { type: 'PP_NUDGE'; dx: number; dy: number }
+  | { type: 'PP_FINISH' }
+  | { type: 'FT_SELECT_FISH'; fishId: string }
+  | { type: 'FT_KEEP_WATCHING' }
+  | { type: 'FT_NAME_FISH' }
+  | { type: 'FT_RESEARCH_FISH' }
+  | { type: 'FT_WALK_AWAY' };

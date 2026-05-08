@@ -307,38 +307,32 @@ body::after {
   margin-right: 6px;
 }
 
-.choice-distraction {
-  border-color: #2a2a0a;
-  color: #aaaa44;
-}
-
-.choice-distraction:hover {
-  border-color: var(--amber);
-  color: var(--amber);
-  background: rgba(255, 176, 0, 0.05);
-}
-
-.choice-chaos-extra {
-  border-color: #3a0a3a;
-  color: #cc44cc;
+.choice-resist {
   font-style: italic;
 }
 
-.choice-chaos-extra:hover {
-  border-color: #ff44ff;
-  color: #ff44ff;
-  background: rgba(255, 0, 255, 0.05);
+.choice-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 2px;
+  color: var(--text-dim);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
-.choice-resist {
-  border-color: #1a1a3a;
-  color: #4444aa;
+.choice-divider::before,
+.choice-divider::after {
+  content: '';
+  height: 1px;
+  flex: 1;
+  background: var(--border);
 }
 
-.choice-resist:hover {
-  border-color: #4444ff;
-  color: #8888ff;
-  background: rgba(64, 64, 255, 0.05);
+.choice-direction {
+  border-style: dashed;
+  padding-left: 18px;
 }
 
 /* ── Title Screen ── */

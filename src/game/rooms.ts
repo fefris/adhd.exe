@@ -241,7 +241,7 @@ export const ROOMS: Record<string, Room> = {
         choices.push({
           id: 'leave-house',
           label: 'Leave the house',
-          action: { type: 'MOVE', to: 'commute' },
+          action: { type: 'MOVE', to: 'front-garden' },
         });
       } else {
         choices.push({
@@ -332,7 +332,7 @@ export const ROOMS: Record<string, Room> = {
       return desc;
     },
     exits: { west: 'kitchen' },
-    choices: (_s) => {
+    choices: () => {
       const choices: Choice[] = [];
 
       choices.push({
@@ -359,6 +359,74 @@ export const ROOMS: Record<string, Room> = {
     },
   },
 
+  'front-garden': {
+    id: 'front-garden',
+    name: 'FRONT GARDEN',
+    description: (s) => {
+      let desc = 'You are in the front garden. The door has clicked shut behind you, which gives the moment an undeserved sense of finality.';
+      if (!hasDone(s, 'returned-home-for-forgotten-thing')) desc += ' You have taken three steps away from the house. This is exactly the distance at which memory traditionally becomes operational.';
+      if (hasDone(s, 'returned-home-for-forgotten-thing')) desc += ' You are back outside. This time feels more deliberate, though that may be optimism.';
+      if (s.chaos >= 34) desc += ' A neighbour has put their bins out already. You are not sure whether bin day is today. This information is now trying to become your problem.';
+      if (s.chaos >= 67) desc += ' The path, the gate, the sky, your bag, and the concept of time all briefly ask for separate attention.';
+      return desc;
+    },
+    exits: { north: 'hallway', east: 'commute' },
+    choices: (s) => {
+      const choices: Choice[] = [];
+
+      if (!hasDone(s, 'returned-home-for-forgotten-thing')) {
+        choices.push({
+          id: 'return-home-for-forgotten-thing',
+          label: 'Realize you forgot something and go back inside',
+          action: {
+            type: 'MOVE',
+            to: 'hallway',
+            description: 'Three steps from the door, your brain produces a single clear thought: you have forgotten something. Not maybe. Definitely. You turn around immediately, with the specific calm of someone who has done this many times.',
+            timeDelta: -8,
+            chaosDelta: 10,
+            completesAction: 'returned-home-for-forgotten-thing',
+          },
+        });
+      }
+
+      choices.push({
+        id: 'inspect-garden-detail',
+        label: 'Investigate something shiny in the garden bed',
+        blockedByAction: 'inspected-garden-detail',
+        action: {
+          type: 'DISTRACTION',
+          description: 'Something catches the light in the garden bed. This is not relevant. It is also impossible to ignore.',
+          completesAction: 'inspected-garden-detail',
+          steps: [
+            { text: 'You crouch beside the path and find a bottle cap, a small screw, and a piece of blue plastic that briefly seems like it might be important.', focusDelta: -4, timeDelta: -5, chaosDelta: 8 },
+            { text: 'You try to remember what the screw could have come from. The answer may be "nothing you currently own," but your brain opens an investigation anyway.', focusDelta: -5, timeDelta: -6, chaosDelta: 10 },
+          ],
+        },
+      });
+
+      choices.push({
+        id: 'audit-bin-day',
+        label: 'Work out whether it is bin day',
+        blockedByAction: 'audited-bin-day',
+        action: {
+          type: 'DISTRACTION',
+          description: 'The bins are out. Some bins are out. Enough bins are out that the question has become active.',
+          completesAction: 'audited-bin-day',
+          steps: [
+            { text: 'You compare your bins with the neighbour\'s bins. Then the bins across the street. This creates data. It does not create certainty.', focusDelta: -3, timeDelta: -4, chaosDelta: 7 },
+            { text: 'You open the council website on your phone. It asks for your address. You know your address, but typing it feels like a task from a different game.', focusDelta: -5, timeDelta: -7, chaosDelta: 11 },
+          ],
+        },
+      });
+
+      if (!hasDone(s, 'returned-home-for-forgotten-thing')) {
+        choices.push(exitChoice('Hallway', 'hallway', 'north'));
+      }
+      choices.push(exitChoice('Commute', 'commute', 'east'));
+      return choices;
+    },
+  },
+
   commute: {
     id: 'commute',
     name: 'COMMUTE',
@@ -370,7 +438,7 @@ export const ROOMS: Record<string, Room> = {
       return desc;
     },
     exits: { east: 'office-lobby' },
-    choices: (_s) => {
+    choices: () => {
       const choices: Choice[] = [];
 
       choices.push({
@@ -568,7 +636,7 @@ export const ROOMS: Record<string, Room> = {
       return desc;
     },
     exits: { west: 'open-plan' },
-    choices: (_s) => {
+    choices: () => {
       const choices: Choice[] = [];
 
       choices.push({
@@ -587,7 +655,12 @@ export const ROOMS: Record<string, Room> = {
       choices.push({
         id: 'stare-screensaver',
         label: 'Watch the fish screensaver',
-        action: { type: 'EXAMINE', description: 'You watch the fish. They do not have meetings. They do not have emails. They do not exist, technically, which is its own kind of freedom.', chaosDelta: 5 },
+        action: {
+          type: 'MINI_GAME',
+          gameId: 'fish-tank',
+          description: 'You glance at the fish screensaver. Several fish drift across the monitor with no apparent deadlines. This is immediately more compelling than it should be.',
+          completesAction: 'watched-fish-screensaver',
+        },
       });
 
       choices.push(exitChoice('Open Plan', 'open-plan', 'west'));
@@ -635,6 +708,19 @@ export const ROOMS: Record<string, Room> = {
         });
       }
 
+      if (!hasDone(s, 'watched-pixel-perfect-presentation')) {
+        choices.push({
+          id: 'pixel-perfect-presentation',
+          label: 'Watch the presentation and fix the slide in your head',
+          action: {
+            type: 'MINI_GAME',
+            gameId: 'pixel-perfect',
+            description: 'The presenter opens a deck. The slide has a title, bullets, chart, logo, and footer. Some of them are not aligned. You are now aware of this instead of whatever the presenter is saying.',
+            completesAction: 'watched-pixel-perfect-presentation',
+          },
+        });
+      }
+
       choices.push(exitChoice('Open Plan', 'open-plan', 'south'));
       choices.push(exitChoice('Bathroom', 'bathroom-work', 'east'));
       return choices;
@@ -651,7 +737,7 @@ export const ROOMS: Record<string, Room> = {
       return desc;
     },
     exits: { west: 'meeting-room' },
-    choices: (_s) => {
+    choices: () => {
       const choices: Choice[] = [];
 
       choices.push({
@@ -818,7 +904,7 @@ export const ROOMS: Record<string, Room> = {
       return desc;
     },
     exits: {},
-    choices: (_s) => [
+    choices: () => [
       {
         id: 'end-game',
         label: 'Arrive home. End the day.',

@@ -12,6 +12,8 @@ import { DoomScroll } from './minigames/DoomScroll';
 import { TheMeeting } from './minigames/TheMeeting';
 import { TimeBlindness } from './minigames/TimeBlindness';
 import { ContextSwitch } from './minigames/ContextSwitch';
+import { PixelPerfect } from './minigames/PixelPerfect';
+import { FishTank } from './minigames/FishTank';
 import './styles/terminal.css';
 
 function GameHeader() {
@@ -42,6 +44,14 @@ export default function App() {
   const handleTbGuess = useCallback((minutes: number) => dispatch({ type: 'TB_GUESS', minutes }), []);
   const handleCsMemorizeDone = useCallback(() => dispatch({ type: 'CS_MEMORIZE_DONE' }), []);
   const handleCsSelectWord = useCallback((word: string) => dispatch({ type: 'CS_SELECT_WORD', word }), []);
+  const handlePpSelectElement = useCallback((elementId: string) => dispatch({ type: 'PP_SELECT_ELEMENT', elementId }), []);
+  const handlePpNudge = useCallback((dx: number, dy: number) => dispatch({ type: 'PP_NUDGE', dx, dy }), []);
+  const handlePpFinish = useCallback(() => dispatch({ type: 'PP_FINISH' }), []);
+  const handleFtSelectFish = useCallback((fishId: string) => dispatch({ type: 'FT_SELECT_FISH', fishId }), []);
+  const handleFtKeepWatching = useCallback(() => dispatch({ type: 'FT_KEEP_WATCHING' }), []);
+  const handleFtNameFish = useCallback(() => dispatch({ type: 'FT_NAME_FISH' }), []);
+  const handleFtResearchFish = useCallback(() => dispatch({ type: 'FT_RESEARCH_FISH' }), []);
+  const handleFtWalkAway = useCallback(() => dispatch({ type: 'FT_WALK_AWAY' }), []);
   const handleCompleteMiniGame = useCallback(() => dispatch({ type: 'COMPLETE_MINI_GAME' }), []);
 
   if (state.screen === 'title') {
@@ -87,14 +97,32 @@ export default function App() {
             onGuess={handleTbGuess}
             onComplete={handleCompleteMiniGame}
           />
-        ) : (
+        ) : pendingMiniGame.id === 'context-switch' ? (
           <ContextSwitch
             state={pendingMiniGame}
             onMemorizeDone={handleCsMemorizeDone}
             onSelectWord={handleCsSelectWord}
             onComplete={handleCompleteMiniGame}
           />
-        )}
+        ) : pendingMiniGame.id === 'pixel-perfect' ? (
+          <PixelPerfect
+            state={pendingMiniGame}
+            onSelectElement={handlePpSelectElement}
+            onNudge={handlePpNudge}
+            onFinish={handlePpFinish}
+            onComplete={handleCompleteMiniGame}
+          />
+        ) : pendingMiniGame.id === 'fish-tank' ? (
+          <FishTank
+            state={pendingMiniGame}
+            onSelectFish={handleFtSelectFish}
+            onKeepWatching={handleFtKeepWatching}
+            onNameFish={handleFtNameFish}
+            onResearchFish={handleFtResearchFish}
+            onWalkAway={handleFtWalkAway}
+            onComplete={handleCompleteMiniGame}
+          />
+        ) : null}
       </div>
     );
   }
