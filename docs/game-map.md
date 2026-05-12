@@ -2,6 +2,14 @@
 
 This map reflects the current room graph, major choices, and mini games.
 
+## Rendered Images
+
+- [Room Flow](./game-map-images/01-room-flow.png)
+- [Mini Game Triggers](./game-map-images/02-mini-game-triggers.png)
+- [Choice Map](./game-map-images/03-choice-map.png)
+- [Mini Game Internals](./game-map-images/04-mini-game-internals.png)
+- [Ending Logic](./game-map-images/05-ending-logic.png)
+
 ## Room Flow
 
 ```mermaid
